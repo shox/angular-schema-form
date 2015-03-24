@@ -83,8 +83,7 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
       // We don't use $validators since we like to set different errors depeding tv4 error codes
       ngModel.$parsers.push(validate);
 
-      // Listen to an event so we can validate the input on request
-      scope.$on('schemaFormValidate', function() {
+      var funcName = function() {
         if (ngModel.$setDirty) {
           // Angular 1.3+
           ngModel.$setDirty();
@@ -94,7 +93,15 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
           ngModel.$setViewValue(ngModel.$viewValue);
         }
 
-      });
+      };
+
+      // Listen to an event so we can validate the input on request
+      var eventNames = ngSchemaEventName(element);
+      scope.$on(eventNames.all, funcName);
+      if( eventNames.prefixedName ){
+          scope.$on(eventNames.prefixedName, funcName);
+      }
+
 
       scope.schemaError = function() {
         return error;
@@ -103,3 +110,16 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
     }
   };
 }]);
+
+
+function ngSchemaEventName(element){
+      var eventName =  'schemaFormValidate';
+      var eventNamePrefix = element.parents('form').attr('name');
+      if( eventNamePrefix && $.trim(eventNamePrefix) != '' ){
+          eventNamePrefix = eventNamePrefix + '-' + eventName;
+      }
+      return {
+          'all':eventName+'All',
+          'prefixedName':eventNamePrefix
+      }
+}

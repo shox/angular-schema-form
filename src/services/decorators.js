@@ -244,7 +244,6 @@ angular.module('schemaForm').provider('schemaFormDecorators',
                           if (!form.validationMessage) {
                             form.validationMessage = {};
                           }
-                          console.log('settings validationMessage', validationMessage)
                           form.validationMessage[error] = validationMessage;
                         }
 
@@ -252,7 +251,14 @@ angular.module('schemaForm').provider('schemaFormDecorators',
 
                         // Setting or removing a validity can change the field to believe its valid
                         // but its not. So lets trigger its validation as well.
-                        scope.$broadcast('schemaFormValidate');
+                        if( validity === true ){
+                            var eventNames = ngSchemaEventName(element);
+                            scope.$on(eventNames.all, scope.validateArray);
+                            if (eventNames.prefixedName) {
+                                 scope.$on(eventNames.prefixedName, scope.validateArray);
+                            }
+
+                        }
                       }
                   })
                 }

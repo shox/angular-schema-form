@@ -372,7 +372,6 @@ angular.module('schemaForm').provider('schemaFormDecorators',
                           if (!form.validationMessage) {
                             form.validationMessage = {};
                           }
-                          console.log('settings validationMessage', validationMessage)
                           form.validationMessage[error] = validationMessage;
                         }
 
@@ -380,7 +379,14 @@ angular.module('schemaForm').provider('schemaFormDecorators',
 
                         // Setting or removing a validity can change the field to believe its valid
                         // but its not. So lets trigger its validation as well.
-                        scope.$broadcast('schemaFormValidate');
+                        if( validity === true ){
+                            var eventNames = ngSchemaEventName(element);
+                            scope.$on(eventNames.all, scope.validateArray);
+                            if (eventNames.prefixedName) {
+                                 scope.$on(eventNames.prefixedName, scope.validateArray);
+                            }
+
+                        }
                       }
                   })
                 }
@@ -1173,9 +1179,10 @@ angular.module('schemaForm').factory('sfValidator', [function() {
     var propName = form.key[form.key.length - 1];
     wrap.properties[propName] = schema;
 
-    if (form.required) {
-      wrap.required = [propName];
+    if (form.required && (form.requiredCondition === undefined || form.requiredCondition() ) ) {
+     wrap.required = [propName];
     }
+
     var valueWrap = {};
     if (angular.isDefined(value)) {
       valueWrap[propName] = value;
@@ -1424,7 +1431,12 @@ angular.module('schemaForm').directive('sfArray', ['sfSelect', 'schemaForm', 'sf
               }
             };
 
-            scope.$on('schemaFormValidate', scope.validateArray);
+            var eventNames = ngSchemaEventName(element);
+            scope.$on(eventNames.all, scope.validateArray);
+            if (eventNames.prefixedName) {
+              scope.$on(eventNames.prefixedName, scope.validateArray);
+            }
+
 
             scope.hasSuccess = function() {
               return ngModel.$valid && !ngModel.$pristine;
@@ -1794,8 +1806,7 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
       // We don't use $validators since we like to set different errors depeding tv4 error codes
       ngModel.$parsers.push(validate);
 
-      // Listen to an event so we can validate the input on request
-      scope.$on('schemaFormValidate', function() {
+      var funcName = function() {
         if (ngModel.$setDirty) {
           // Angular 1.3+
           ngModel.$setDirty();
@@ -1805,7 +1816,15 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
           ngModel.$setViewValue(ngModel.$viewValue);
         }
 
-      });
+      };
+
+      // Listen to an event so we can validate the input on request
+      var eventNames = ngSchemaEventName(element);
+      scope.$on(eventNames.all, funcName);
+      if( eventNames.prefixedName ){
+          scope.$on(eventNames.prefixedName, funcName);
+      }
+
 
       scope.schemaError = function() {
         return error;
@@ -1814,3 +1833,16 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
     }
   };
 }]);
+
+
+function ngSchemaEventName(element){
+      var eventName =  'schemaFormValidate';
+      var eventNamePrefix = element.parents('form').attr('name');
+      if( eventNamePrefix && $.trim(eventNamePrefix) != '' ){
+          eventNamePrefix = eventNamePrefix + '-' + eventName;
+      }
+      return {
+          'all':eventName+'All',
+          'prefixedName':eventNamePrefix
+      }
+}

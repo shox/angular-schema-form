@@ -235,7 +235,12 @@ angular.module('schemaForm').directive('sfArray', ['sfSelect', 'schemaForm', 'sf
               }
             };
 
-            scope.$on('schemaFormValidate', scope.validateArray);
+            var eventNames = ngSchemaEventName(element);
+            scope.$on(eventNames.all, scope.validateArray);
+            if (eventNames.prefixedName) {
+              scope.$on(eventNames.prefixedName, scope.validateArray);
+            }
+
 
             scope.hasSuccess = function() {
               return ngModel.$valid && !ngModel.$pristine;
