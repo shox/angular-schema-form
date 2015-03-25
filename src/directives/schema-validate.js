@@ -83,7 +83,9 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
 
       form.validate = function(stopPropagation){
         validate(ngModel.$modelValue, stopPropagation);
-        scope.$apply();
+        $timeout(function(){
+          scope.$apply();
+        });
       };
 
       // Custom validators, parsers, formatters etc
