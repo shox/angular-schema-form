@@ -253,7 +253,7 @@ angular.module('schemaForm').provider('schemaFormDecorators',
                         // but its not. So lets trigger its validation as well.
                         if( validity === true ){
                             // Trigger validation for this form
-                            form.validate();
+                            form.validate(error === 'dummy');
                             var eventNames = ngSchemaEventName(element);
                             scope.$on(eventNames.all, scope.validateArray);
                             if (eventNames.prefixedName) {

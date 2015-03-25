@@ -34,7 +34,7 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
 
       // Validate against the schema.
 
-      var validate = function(viewValue) {
+      var validate = function(viewValue, stopPropagation) {
         form = getForm();
         //Still might be undefined
         if (!form) {
@@ -49,7 +49,7 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
               .forEach(function(k) { ngModel.$setValidity(k, true); });
 
         // Trigger validation on all dependencies if any
-        if (form.validationDependecies) {
+        if (!stopPropagation && form.validationDependecies) {
           for (var i in form.validationDependecies) {
             var keys = form.key.slice();
             keys[form.key.length - 1] = form.validationDependecies[i];
@@ -81,8 +81,8 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
         return viewValue;
       };
 
-      form.validate = function(){
-        validate(ngModel.$modelValue);
+      form.validate = function(stopPropagation){
+        validate(ngModel.$modelValue, stopPropagation);
         scope.$apply();
       };
 
