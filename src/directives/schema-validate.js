@@ -53,7 +53,22 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
           ngModel.$setValidity('tv4-' + result.error.code, false);
           error = result.error;
           return undefined;
+        } else if (form.customValidator) {
+          var errorResult = form.customValidator(viewValue);
+
+          if (errorResult) {
+            if (errorResult.message) {
+              if (!form.validationMessage) {
+                form.validationMessage = {};
+              }
+              form.validationMessage[errorResult.code] = errorResult.message;
+            }
+
+            ngModel.$setDirty();
+            ngModel.$setValidity(errorResult.code, false);
+          }
         }
+
         return viewValue;
       };
 
