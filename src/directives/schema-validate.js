@@ -57,6 +57,11 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
         return viewValue;
       };
 
+      form.validate = function(){
+        validate(ngModel.$modelValue);
+        scope.$apply();
+      };
+
       // Custom validators, parsers, formatters etc
       if (typeof form.ngModel === 'function') {
         form.ngModel(ngModel);
