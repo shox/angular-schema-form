@@ -252,6 +252,8 @@ angular.module('schemaForm').provider('schemaFormDecorators',
                         // Setting or removing a validity can change the field to believe its valid
                         // but its not. So lets trigger its validation as well.
                         if( validity === true ){
+                            // Trigger validation for this form
+                            form.validate();
                             var eventNames = ngSchemaEventName(element);
                             scope.$on(eventNames.all, scope.validateArray);
                             if (eventNames.prefixedName) {

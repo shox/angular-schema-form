@@ -1,4 +1,4 @@
-angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSelect', function(sfValidator, sfSelect) {
+angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSelect', '$rootScope', function(sfValidator, sfSelect, $rootScope) {
   return {
     restrict: 'A',
     scope: false,
@@ -47,6 +47,15 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
         Object.keys(ngModel.$error)
               .filter(function(k) { return k.indexOf('tv4-') === 0; })
               .forEach(function(k) { ngModel.$setValidity(k, true); });
+
+        // Trigger validation on all dependencies if any
+        if (form.validationDependecies) {
+          for (var i in form.validationDependecies) {
+            var keys = form.key.slice();
+            keys[form.key.length - 1] = form.validationDependecies[i];
+            $rootScope.$broadcast('schemaForm.error.' + keys.join('.'), 'dummy', true);
+          }
+        }
 
         if (!result.valid) {
           // it is invalid, return undefined (no model update)
