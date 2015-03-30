@@ -1417,7 +1417,7 @@ angular.module('schemaForm').directive('sfArray', ['sfSelect', 'schemaForm', 'sf
               // Since we might have different tv4 errors we must clear all
               // errors that start with tv4-
               Object.keys(ngModel.$error)
-                    .filter(function(k) { return k.indexOf('tv4-') === 0; })
+                    //.filter(function(k) { return k.indexOf('tv4-') === 0; })
                     .forEach(function(k) { ngModel.$setValidity(k, true); });
 
               if (result.valid === false &&
@@ -1770,7 +1770,7 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
         // Since we might have different tv4 errors we must clear all
         // errors that start with tv4-
         Object.keys(ngModel.$error)
-              .filter(function(k) { return k.indexOf('tv4-') === 0; })
+              //.filter(function(k) { return k.indexOf('tv4-') === 0; })
               .forEach(function(k) { ngModel.$setValidity(k, true); });
 
         // Trigger validation on all dependencies if any
