@@ -380,6 +380,8 @@ angular.module('schemaForm').provider('schemaFormDecorators',
                         // Setting or removing a validity can change the field to believe its valid
                         // but its not. So lets trigger its validation as well.
                         if( validity === true ){
+                            // Trigger validation for this form
+                            form.validate(error === 'dummy');
                             var eventNames = ngSchemaEventName(element);
                             scope.$on(eventNames.all, scope.validateArray);
                             if (eventNames.prefixedName) {
@@ -1721,7 +1723,7 @@ angular.module('schemaForm')
   }
 ]);
 
-angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSelect', function(sfValidator, sfSelect) {
+angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSelect', '$rootScope', function(sfValidator, sfSelect, $rootScope) {
   return {
     restrict: 'A',
     scope: false,
@@ -1757,7 +1759,7 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
 
       // Validate against the schema.
 
-      var validate = function(viewValue) {
+      var validate = function(viewValue, stopPropagation) {
         form = getForm();
         //Still might be undefined
         if (!form) {
@@ -1771,13 +1773,44 @@ angular.module('schemaForm').directive('schemaValidate', ['sfValidator', 'sfSele
               .filter(function(k) { return k.indexOf('tv4-') === 0; })
               .forEach(function(k) { ngModel.$setValidity(k, true); });
 
+        // Trigger validation on all dependencies if any
+        if (!stopPropagation && form.validationDependecies) {
+          for (var i in form.validationDependecies) {
+            var keys = form.key.slice();
+            keys[form.key.length - 1] = form.validationDependecies[i];
+            $rootScope.$broadcast('schemaForm.error.' + keys.join('.'), 'dummy', true);
+          }
+        }
+
         if (!result.valid) {
           // it is invalid, return undefined (no model update)
           ngModel.$setValidity('tv4-' + result.error.code, false);
           error = result.error;
           return undefined;
+        } else if (form.customValidator) {
+          var errorResult = form.customValidator(viewValue);
+
+          if (errorResult) {
+            if (errorResult.message) {
+              if (!form.validationMessage) {
+                form.validationMessage = {};
+              }
+              form.validationMessage[errorResult.code] = errorResult.message;
+            }
+
+            ngModel.$setDirty();
+            ngModel.$setValidity(errorResult.code, false);
+          }
         }
+
         return viewValue;
+      };
+
+      form.validate = function(stopPropagation){
+        validate(ngModel.$modelValue, stopPropagation);
+        $timeout(function(){
+          scope.$apply();
+        });
       };
 
       // Custom validators, parsers, formatters etc
